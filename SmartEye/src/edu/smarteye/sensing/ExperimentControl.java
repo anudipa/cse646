@@ -24,12 +24,12 @@ public class ExperimentControl extends Service
 	}
 
 	
-	public void onCreate()
+	/*public void onCreate()
 	{
 		try {
 			motionCheck = new SenseMotion(getApplicationContext());
 			motionCheck.startSense();
-			proximityCheck = new ProximityTask(getApplicationContext(),"Neighbors",60000L);
+			proximityCheck = new ProximityTask(getApplicationContext(),"Neighbors",100000L);
 			proximityCheck.start();
 		} catch (NoSuchAlgorithmException e) {
 			// TODO Auto-generated catch block
@@ -38,7 +38,7 @@ public class ExperimentControl extends Service
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-	}
+	}*/
 	@Override
 	public IBinder onBind(Intent intent) {
 		
@@ -47,6 +47,19 @@ public class ExperimentControl extends Service
 	
 	public int onStartCommand(Intent intent, int flags, int startId) 
 	{
+		
+		try {
+			motionCheck = new SenseMotion(getApplicationContext());
+			motionCheck.startSense();
+			proximityCheck = new ProximityTask(getApplicationContext(),"Neighbors",100000L);
+			proximityCheck.start();
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		return START_STICKY;
 	}
 	

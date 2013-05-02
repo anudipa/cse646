@@ -24,10 +24,12 @@ public class ProximityTask extends PeriodicTask
 {
 	private final String SERVICE_TYPE = "_http._tcp.";
 	protected final Long DISCOVERY_INTERVAL_MS = 10000L;
+	protected final Long REGISTER_INTERVAL_MS = 50000L;
 	
 	NsdServiceInfo serviceInfo;	
 	NsdManager nsdManager;
 	
+	private boolean localServiceRunning;
 	private String hashedID;
 	private String serviceName;
 	private HashSet<NsdServiceInfo> discoveredServices;
@@ -49,9 +51,10 @@ public class ProximityTask extends PeriodicTask
 		
 		serviceInfo = new NsdServiceInfo();
 		serviceInfo.setPort(port);
-		serviceInfo.setServiceName(serviceName);
+		//serviceInfo.setServiceName(serviceName);
 		serviceInfo.setServiceType(SERVICE_TYPE);
 		
+		localServiceRunning = false;
 		discoveryStarted = false;
 		discoveredServices = new HashSet<NsdServiceInfo>();
 	}
@@ -64,11 +67,47 @@ public class ProximityTask extends PeriodicTask
 	@Override
 	public synchronized void stop() {
 		super.stop();
-		nsdManager.unregisterService(registrationListener);
+		if (localServiceRunning == true)
+		{
+			nsdManager.unregisterService(registrationListener);
+		}
 	}
 	
 	@Override
 	protected void check() {
+		
+		synchronized(this) {
+			if (localServiceRunning == true)
+			{
+				Log.w(TAG, "Service already registered");
+				return;
+			}else {
+					serviceName = hashedID;
+					try
+					{
+						File root = Environment.getExternalStorageDirectory();
+						File f= new File(root.getAbsolutePath(), "status.txt");
+						BufferedReader br = new BufferedReader(new FileReader(f));
+						String s = null;
+						if ((s=br.readLine())!= null && (s = s.trim()).length() > 0)
+							{
+								serviceName = hashedID+s;
+							}
+						if (serviceName.contains("FLAG1") && !serviceName.equals(hashedID))
+							{
+								serviceInfo.setServiceName(serviceName);
+								nsdManager.registerService(serviceInfo, NsdManager.PROTOCOL_DNS_SD, registrationListener);
+								
+							}
+					}catch(Exception e){
+						Log.e(TAG, e.getMessage());
+						serviceName = hashedID;
+					}
+					
+					
+			}
+		}
+		
 		synchronized (this) {
 			if (discoveryStarted == true) {
 				Log.w(TAG, "Discovery already running.");
@@ -93,6 +132,29 @@ public class ProximityTask extends PeriodicTask
 				nsdManager.stopServiceDiscovery(discoveryListener);
 			}
 		}
+		
+		try{
+			if (localServiceRunning == true)
+			{
+				Thread.sleep(REGISTER_INTERVAL_MS);
+			}
+			
+		}catch(InterruptedException e){
+			Log.w(TAG, "Interrupted running local service");
+		}
+		
+		synchronized(this){
+			if (localServiceRunning == false)
+			{
+				Log.w(TAG, "Local service not registered");
+				return;
+			}else {
+				nsdManager.unregisterService(registrationListener);
+				
+			}
+			
+		}
+		
 	}
 	
 	NsdManager.DiscoveryListener discoveryListener = new NsdManager.DiscoveryListener() {
@@ -103,24 +165,7 @@ public class ProximityTask extends PeriodicTask
 				discoveryStarted = true;
 			}
 			Log.d(TAG, "Service discovery started");
-			try
-			{
-			File root = Environment.getExternalStorageDirectory();
-			File f= new File(root.getAbsolutePath(), "status.txt");
-			BufferedReader br = new BufferedReader(new FileReader(f));
-			String s = null;
-			if ((s=br.readLine())!= null && (s = s.trim()).length() > 0)
-			{
-				serviceName = hashedID+s;
-			}
-			else
-				serviceName = hashedID;
-			}catch(Exception e){
-				Log.e(TAG, e.getMessage());
-				serviceName = hashedID;
-			}
-			serviceInfo.setServiceName(serviceName);
-			nsdManager.registerService(serviceInfo, NsdManager.PROTOCOL_DNS_SD, registrationListener);
+			
 		}
 
 		
@@ -128,22 +173,23 @@ public class ProximityTask extends PeriodicTask
 		public void onDiscoveryStopped(String serviceType) {
 			synchronized (ProximityTask.this) {
 				discoveryStarted = false;
-				boolean localServiceRunning = false;
+				//boolean localServiceRunning = false;
+				Log.d(TAG, "# discovered services = "+discoveredServices.size());
 				for (NsdServiceInfo service : discoveredServices) {
 					if (service.getServiceName().contains(hashedID)) {
-						localServiceRunning = true;
-						Log.v(TAG, "Discovered service " + serviceInfo.getServiceName());
+						//localServiceRunning = true;
+						Log.v(TAG, "Discovered service: " + serviceInfo.getServiceName());
 						continue;
 					} else {
 						nsdManager.resolveService(serviceInfo, resolveListener);
-						Log.v(TAG, "Discovered service " + serviceInfo.getServiceName());
+						Log.v(TAG, "ALert service: " + serviceInfo.getServiceName());
 					}
 				}
-				if (localServiceRunning == true) {
+				/*if (localServiceRunning == true) {
 					Log.i(TAG, "Local service running. Stoping.");
 					//nsdManager.registerService(serviceInfo, NsdManager.PROTOCOL_DNS_SD, registrationListener);
-					nsdManager.unregisterService(registrationListener);
-				}
+					//nsdManager.unregisterService(registrationListener);
+				}*/
 			}
 			Log.d(TAG, "Service discovery stopped.");
 		}
@@ -169,7 +215,10 @@ public class ProximityTask extends PeriodicTask
 		}
 		// @Override
 		public void onServiceFound(NsdServiceInfo service) {
-			discoveredServices.add(service);
+			if (!discoveredServices.contains(service))
+			{
+				discoveredServices.add(service);
+			}
 		}
 
 		// @Override
@@ -181,6 +230,11 @@ public class ProximityTask extends PeriodicTask
 
 		// @Override
 		public void onServiceRegistered(NsdServiceInfo nsdServiceInfo) {
+			synchronized(ProximityTask.this)
+			{
+				Log.i(TAG, "Local service registered: "+nsdServiceInfo.getServiceName());
+				localServiceRunning = true;
+			}
 		}
 
 		// @Override
@@ -189,6 +243,10 @@ public class ProximityTask extends PeriodicTask
 
 		// @Override
 		public void onServiceUnregistered(NsdServiceInfo arg0) {
+			synchronized(ProximityTask.this){
+				Log.i(TAG, "Local service unregistered: "+arg0.getServiceName());
+				localServiceRunning = false;
+			}
 		}
 
 		// @Override
