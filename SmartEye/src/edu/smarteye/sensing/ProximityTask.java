@@ -25,11 +25,12 @@ public class ProximityTask extends PeriodicTask
 	private final String SERVICE_TYPE = "_http._tcp.";
 	protected final Long DISCOVERY_INTERVAL_MS = 10000L;
 	protected final Long REGISTER_INTERVAL_MS = 50000L;
+	//private static boolean RECORD_STATUS = false; 
 	
 	NsdServiceInfo serviceInfo;	
 	NsdManager nsdManager;
 	
-	private boolean localServiceRunning;
+	private static boolean localServiceRunning;
 	private String hashedID;
 	private String serviceName;
 	private HashSet<NsdServiceInfo> discoveredServices;
@@ -93,12 +94,14 @@ public class ProximityTask extends PeriodicTask
 							{
 								serviceName = hashedID+s;
 							}
+						br.close();
 						if (serviceName.contains("FLAG1") && !serviceName.equals(hashedID))
 							{
 								serviceInfo.setServiceName(serviceName);
 								nsdManager.registerService(serviceInfo, NsdManager.PROTOCOL_DNS_SD, registrationListener);
 								
 							}
+						br.close();
 					}catch(Exception e){
 						Log.e(TAG, e.getMessage());
 						serviceName = hashedID;
@@ -183,13 +186,13 @@ public class ProximityTask extends PeriodicTask
 					} else {
 						nsdManager.resolveService(service, resolveListener);
 						Log.v(TAG, "ALert service: " + service.getServiceName());
+						/*if (RECORD_STATUS == false && service.getServiceName().contains("FLAG1"))
+						{
+							RECORD_STATUS = true;
+						}*/
 					}
 				}
-				/*if (localServiceRunning == true) {
-					Log.i(TAG, "Local service running. Stoping.");
-					//nsdManager.registerService(serviceInfo, NsdManager.PROTOCOL_DNS_SD, registrationListener);
-					//nsdManager.unregisterService(registrationListener);
-				}*/
+				
 			}
 			Log.d(TAG, "Service discovery stopped.");
 		}
@@ -239,6 +242,12 @@ public class ProximityTask extends PeriodicTask
 
 		// @Override
 		public void onRegistrationFailed(NsdServiceInfo arg0, int arg1) {
+			Log.w(TAG, "Failed to register: " + arg1);
+			synchronized (ProximityTask.this) {
+				if (localServiceRunning == true) {
+					Log.e(TAG, "Registration started should not be true.");
+				}
+			}
 		}
 
 		// @Override
@@ -250,8 +259,13 @@ public class ProximityTask extends PeriodicTask
 		}
 
 		// @Override
-		public void onUnregistrationFailed(NsdServiceInfo serviceInfo,
-				int errorCode) {
+		public void onUnregistrationFailed(NsdServiceInfo serviceInfo, int errorCode) {
+			Log.w(TAG, "Failed to unregister: " + errorCode);
+			synchronized (ProximityTask.this) {
+				if (localServiceRunning == false) {
+					Log.e(TAG, "Unregistration started should not be true.");
+				}
+			}
 		}
 
 	};
