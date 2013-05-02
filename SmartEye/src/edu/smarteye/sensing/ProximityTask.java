@@ -178,11 +178,11 @@ public class ProximityTask extends PeriodicTask
 				for (NsdServiceInfo service : discoveredServices) {
 					if (service.getServiceName().contains(hashedID)) {
 						//localServiceRunning = true;
-						Log.v(TAG, "Discovered service: " + serviceInfo.getServiceName());
+						Log.v(TAG, "Discovered service: " + service.getServiceName());
 						continue;
 					} else {
-						nsdManager.resolveService(serviceInfo, resolveListener);
-						Log.v(TAG, "ALert service: " + serviceInfo.getServiceName());
+						nsdManager.resolveService(service, resolveListener);
+						Log.v(TAG, "ALert service: " + service.getServiceName());
 					}
 				}
 				/*if (localServiceRunning == true) {
