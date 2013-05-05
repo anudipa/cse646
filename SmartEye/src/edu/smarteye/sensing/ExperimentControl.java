@@ -47,19 +47,19 @@ public class ExperimentControl extends Service
 	
 	public int onStartCommand(Intent intent, int flags, int startId) 
 	{
-		Log.v("Came here","");
-		Log.v("Part ","One");
-		Intent dialogIntent = new Intent(this, VideoRecorder.class);
+		
+		/*Intent dialogIntent = new Intent(this, VideoRecorder.class);
 		dialogIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 		this.startActivity(dialogIntent);
 		
-		vrecorder = new VideoRecorder();
-		vrecorder.startrecording(getApplicationContext());
+		vrecorder = new VideoRecorder(getApplicationContext());
+		vrecorder.startrecording();*/
 		motionCheck = new SenseMotion(getApplicationContext());
 		motionCheck.startSense();
 		
 		try {
-			proximityCheck = new ProximityTask(getApplicationContext(),"Neighbors",100000L);
+			proximityCheck = new ProximityTask(getApplicationContext(),"Neighbours",60000L);
+			proximityCheck.start();
 		} catch (NoSuchAlgorithmException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -67,7 +67,7 @@ public class ExperimentControl extends Service
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		proximityCheck.start();
+		
 		return START_STICKY;
 	}
 	
@@ -75,6 +75,7 @@ public class ExperimentControl extends Service
 	{
 		motionCheck.stopSense();
 		proximityCheck.stop();
+		//vrecorder.shutdown();
 	}
 
 }

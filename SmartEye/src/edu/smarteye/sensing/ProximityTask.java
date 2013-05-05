@@ -1,8 +1,10 @@
 package edu.smarteye.sensing;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.net.ServerSocket;
@@ -24,7 +26,7 @@ public class ProximityTask extends PeriodicTask
 {
 	private final String SERVICE_TYPE = "_http._tcp.";
 	protected final Long DISCOVERY_INTERVAL_MS = 10000L;
-	protected final Long REGISTER_INTERVAL_MS = 50000L;
+	protected final Long REGISTER_INTERVAL_MS = 1000L;
 	//private static boolean RECORD_STATUS = false; 
 	
 	NsdServiceInfo serviceInfo;	
@@ -101,7 +103,7 @@ public class ProximityTask extends PeriodicTask
 								nsdManager.registerService(serviceInfo, NsdManager.PROTOCOL_DNS_SD, registrationListener);
 								
 							}
-						br.close();
+						
 					}catch(Exception e){
 						Log.e(TAG, e.getMessage());
 						serviceName = hashedID;
@@ -152,7 +154,28 @@ public class ProximityTask extends PeriodicTask
 				Log.w(TAG, "Local service not registered");
 				return;
 			}else {
-				nsdManager.unregisterService(registrationListener);
+				
+				try
+				{
+					File root = Environment.getExternalStorageDirectory();
+					File f= new File(root.getAbsolutePath(), "status.txt");
+					BufferedReader br = new BufferedReader(new FileReader(f));
+					String s = null;
+					if ((s=br.readLine())!= null && (s = s.trim()).length() > 0)
+						{
+							if (s.contains("FLAG0"))
+							{
+								nsdManager.unregisterService(registrationListener);
+							}
+						}
+					br.close();
+					
+				}catch(Exception e){
+					Log.e(TAG, e.getMessage());
+					
+				}
+				
+				
 				
 			}
 			
@@ -186,6 +209,24 @@ public class ProximityTask extends PeriodicTask
 					} else {
 						nsdManager.resolveService(service, resolveListener);
 						Log.v(TAG, "ALert service: " + service.getServiceName());
+						if (service.getServiceName().contains("FLAG1"))
+						{
+							try
+				        	  {
+				        		  File root = Environment.getExternalStorageDirectory();
+				        		  File f= new File(root.getAbsolutePath(), "status.txt");  
+				        		  FileWriter filewriter = new FileWriter(f);  
+				        		  BufferedWriter out = new BufferedWriter(filewriter);
+				        		  out.write("FLAG1");
+				        		  out.close();
+				        	  }
+				        	  catch(Exception e)
+				        	  {
+				        		  Log.e(TAG,"Updating status.txt "+e.getMessage());
+				        	  }
+							break;
+						}
+						
 						/*if (RECORD_STATUS == false && service.getServiceName().contains("FLAG1"))
 						{
 							RECORD_STATUS = true;

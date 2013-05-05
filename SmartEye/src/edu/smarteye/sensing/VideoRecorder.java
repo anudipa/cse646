@@ -7,12 +7,14 @@ import java.io.IOException;
 import android.content.Context;
 import android.hardware.Camera;
 import android.media.MediaRecorder;
+import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
 public class VideoRecorder implements SurfaceHolder.Callback 
 {
+	String TAG ="VideoRecorder";
 	String videofolder = android.os.Environment.getExternalStorageDirectory()+"/Record/";
 	private final String VIDEO_PATH_NAME = videofolder+"test.mp4";
 	private MediaRecorder mMediaRecorder;
@@ -20,12 +22,21 @@ public class VideoRecorder implements SurfaceHolder.Callback
 	private SurfaceView mSurfaceView;
 	private SurfaceHolder mHolder;
 	private boolean mInitSuccesful;
-		
-	void startrecording(Context context)
+	
+	public VideoRecorder(Context context)
 	{
 		mSurfaceView = new SurfaceView(context);
 	    mHolder = mSurfaceView.getHolder();
 	    mHolder.addCallback(this);
+	    mMediaRecorder = new MediaRecorder();
+	    Log.d(TAG, "Created instance");
+	}
+		
+	void startrecording()
+	{
+		//mSurfaceView = new SurfaceView(context);
+	    //mHolder = mSurfaceView.getHolder();
+	   //Holder.addCallback(this);
 	    mMediaRecorder.start();
         try 
         {
@@ -34,6 +45,7 @@ public class VideoRecorder implements SurfaceHolder.Callback
         catch (Exception e) 
         {
             e.printStackTrace();
+            Log.e(TAG, "Error while starting "+e.getMessage());
         }
         //finish();
         
@@ -66,6 +78,7 @@ public class VideoRecorder implements SurfaceHolder.Callback
 	    catch (IllegalStateException e)
 	    {
 	        e.printStackTrace();
+	        Log.e(TAG, "Error at Init: "+e.getMessage());
 	    }
 
 	    mInitSuccesful = true;
@@ -94,7 +107,7 @@ public class VideoRecorder implements SurfaceHolder.Callback
 	@Override
 	public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {}
 
-	private void shutdown() 
+	public void shutdown() 
 	{
 	    // Release MediaRecorder and especially the Camera as it's a shared
 	    // object that can be used by other applications
