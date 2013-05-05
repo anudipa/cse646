@@ -4,7 +4,6 @@ package edu.smarteye.sensing;
 
 import java.io.IOException;
 
-import android.app.Activity;
 import android.content.Context;
 import android.hardware.Camera;
 import android.media.MediaRecorder;
@@ -12,7 +11,7 @@ import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
-public class VideoRecorder extends Activity implements SurfaceHolder.Callback 
+public class VideoRecorder implements SurfaceHolder.Callback 
 {
 	String videofolder = android.os.Environment.getExternalStorageDirectory()+"/Record/";
 	private final String VIDEO_PATH_NAME = videofolder+"test.mp4";
@@ -20,7 +19,6 @@ public class VideoRecorder extends Activity implements SurfaceHolder.Callback
 	private Camera mCamera;
 	private SurfaceView mSurfaceView;
 	private SurfaceHolder mHolder;
-	//private View mToggleButton;
 	private boolean mInitSuccesful;
 		
 	void startrecording(Context context)

@@ -3,7 +3,6 @@ package edu.smarteye.sensing;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 
-import android.app.AlarmManager;
 import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
@@ -14,13 +13,12 @@ import android.util.Log;
 public class ExperimentControl extends Service 
 {
 
-	// Proximity
-	//ProximityTask proximityCheck;
-	//SenseMotion motionCheck;
+	ProximityTask proximityCheck;
+	SenseMotion motionCheck;
 	VideoRecorder vrecorder;
 	
 	int lastStatus = 0;
-	//
+	
 	public ExperimentControl() {
 		Log.i("EXPERIMENT","ExperimentControl started!!!");
 	}
@@ -55,20 +53,28 @@ public class ExperimentControl extends Service
 		dialogIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 		this.startActivity(dialogIntent);
 		
-		//vrecorder = new VideoRecorder();
-		//vrecorder.startrecording(getApplicationContext());
-		//motionCheck = new SenseMotion(getApplicationContext());
-		//motionCheck.startSense();
+		vrecorder = new VideoRecorder();
+		vrecorder.startrecording(getApplicationContext());
+		motionCheck = new SenseMotion(getApplicationContext());
+		motionCheck.startSense();
 		
-		//proximityCheck = new ProximityTask(getApplicationContext(),"Neighbors",100000L);
-		//proximityCheck.start();
+		try {
+			proximityCheck = new ProximityTask(getApplicationContext(),"Neighbors",100000L);
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		proximityCheck.start();
 		return START_STICKY;
 	}
 	
 	public void onDestroy()
 	{
-		//motionCheck.stopSense();
-		//proximityCheck.stop();
+		motionCheck.stopSense();
+		proximityCheck.stop();
 	}
 
 }
