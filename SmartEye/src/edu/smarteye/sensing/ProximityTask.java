@@ -83,17 +83,19 @@ public class ProximityTask extends PeriodicTask
 			if (localServiceRunning == true)
 			{
 				Log.w(TAG, "Service already registered");
-				return;
+				//return;
 			}else {
 					serviceName = hashedID;
 					try
 					{
+						Log.v(TAG,"Deciding whether to register service");
 						File root = Environment.getExternalStorageDirectory();
 						File f= new File(root.getAbsolutePath(), "status.txt");
 						BufferedReader br = new BufferedReader(new FileReader(f));
 						String s = null;
 						if ((s=br.readLine())!= null && (s = s.trim()).length() > 0)
 							{
+								Log.v(TAG,"status: "+s);
 								serviceName = hashedID+s;
 							}
 						br.close();
@@ -118,6 +120,7 @@ public class ProximityTask extends PeriodicTask
 				Log.w(TAG, "Discovery already running.");
 				return;
 			} else {
+				Log.v(TAG,"Discovery is starting");
 				discoveredServices.clear();
 				nsdManager.discoverServices(SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD, discoveryListener);
 			}
@@ -153,16 +156,18 @@ public class ProximityTask extends PeriodicTask
 			{
 				Log.w(TAG, "Local service not registered");
 				return;
-			}else {
-				
+			}else 
+			{
 				try
 				{
+					Log.v(TAG,"Deciding whether to unregister service");
 					File root = Environment.getExternalStorageDirectory();
 					File f= new File(root.getAbsolutePath(), "status.txt");
 					BufferedReader br = new BufferedReader(new FileReader(f));
 					String s = null;
 					if ((s=br.readLine())!= null && (s = s.trim()).length() > 0)
 						{
+							Log.v(TAG,"status: "+s);
 							if (s.contains("FLAG0"))
 							{
 								nsdManager.unregisterService(registrationListener);
@@ -172,10 +177,8 @@ public class ProximityTask extends PeriodicTask
 					
 				}catch(Exception e){
 					Log.e(TAG, e.getMessage());
-					
+					nsdManager.unregisterService(registrationListener);
 				}
-				
-				
 				
 			}
 			
@@ -219,6 +222,7 @@ public class ProximityTask extends PeriodicTask
 				        		  BufferedWriter out = new BufferedWriter(filewriter);
 				        		  out.write("FLAG1");
 				        		  out.close();
+				        		  Log.v(TAG,"Updating status");
 				        	  }
 				        	  catch(Exception e)
 				        	  {
@@ -227,10 +231,6 @@ public class ProximityTask extends PeriodicTask
 							break;
 						}
 						
-						/*if (RECORD_STATUS == false && service.getServiceName().contains("FLAG1"))
-						{
-							RECORD_STATUS = true;
-						}*/
 					}
 				}
 				

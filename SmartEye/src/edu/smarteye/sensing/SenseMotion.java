@@ -29,6 +29,7 @@ public class SenseMotion implements SensorEventListener{
 	
 	private long lastUpdate = 0;
 	private long lastStatusUpd = 0;
+	private int lastStatus = 0;
 	private int flag = 0;
 	private boolean mStartRecording = false;
 	private double thresholdUp  = 0.0;
@@ -328,6 +329,10 @@ public class SenseMotion implements SensorEventListener{
 	        		  out.write("FLAG"+STATUS);
 	        		  out.close();
 	        		  thresholdGyro = 0;
+	        		  Log.i(TAG,"In Gyro Changing Status: "+STATUS);
+	        		  lastStatusUpd = System.currentTimeMillis();
+	        		  lastStatus = STATUS;
+	        		  
 	        	  }
 	        	  catch(Exception e)
 	        	  {
@@ -349,10 +354,15 @@ public class SenseMotion implements SensorEventListener{
 	
 	protected void findMotion( double nowA, double lastA)
 	{
-		 int lastStatus = STATUS;
-		 
+		 		 
 		 //motion = false;
-		 if(nowA - lastA > 0.15)
+		 if (Math.abs(nowA - lastA) > 5)
+		 {
+			 thresholdUp = 0;
+			 thresholdDown = 0;
+					
+		 }
+		 else if(nowA - lastA > 0.15)
 		 {
              thresholdUp = thresholdUp + 4;
              thresholdDown = 0;
@@ -389,14 +399,14 @@ public class SenseMotion implements SensorEventListener{
 		 }
 		 if ((thresholdUp > 0.5 && thresholdUp < 4) || (thresholdDown > 0.5 && thresholdDown < 4))
 		 {
-			 if(soundLevel > 700 && STATUS == 0)
+			 if(soundLevel > 10000 && STATUS == 0)
 			 {
 				// motion = true;
 				 STATUS = 1;
 				 Log.i(TAG,"Moving Now: "+nowA+" Before: "+ lastA+" ampl = "+soundLevel);
 			 }
 		 }
-		 else if(STATUS == 0 && (thresholdUp > 3 || thresholdDown > 3 || soundLevel > 1000))
+		 else if(STATUS == 0 && (thresholdUp > 3 || thresholdDown > 3 || soundLevel > 30000))
 		 {
 			// motion = true;
 			 STATUS = 1;
@@ -407,7 +417,7 @@ public class SenseMotion implements SensorEventListener{
 		 if (lastStatus != STATUS )
 		 {
 			 long thisTime = System.currentTimeMillis(); 
-			 if(!(lastStatus == 1 && lastStatusUpd != 0 && (thisTime - lastStatusUpd) < 120000))
+			 if(!(lastStatus == 1 && lastStatusUpd != 0 && (thisTime - lastStatusUpd) < 90000))
 			 {
 			
 				 try
@@ -418,12 +428,13 @@ public class SenseMotion implements SensorEventListener{
 					 out = new BufferedWriter(filewriter);
 					 out.write("FLAG"+STATUS);
 					 out.close();
-					 
+					 Log.i(TAG,"In Accel Changing Status: "+STATUS);
 				 }catch (Exception e)
 				 {
 					 Log.e(TAG, "In findMotion() "+e.getMessage());
 				 }
 				 lastStatusUpd = thisTime;
+				 lastStatus = STATUS;
 			}
 		 }
 	}
