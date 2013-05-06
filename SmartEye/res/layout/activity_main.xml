@@ -1,5 +1,6 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<AbsoluteLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/AbsoluteLayout1"
     android:layout_width="match_parent"
     android:layout_height="match_parent" >
 
@@ -7,29 +8,57 @@
         android:id="@+id/startBtn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="150dp" 
+        android:layout_x="8dp"
+        android:layout_y="377dp"
         android:text="Start Service" />
 
     <Button
         android:id="@+id/stopBtn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/startBtn"
-        android:layout_below="@+id/startBtn"
-        android:layout_marginTop="25dp"
+        android:layout_x="168dp"
+        android:layout_y="376dp"
         android:text="Stop Service" />
 
     <TextView
         android:id="@+id/textView1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/startBtn"
-        android:layout_alignLeft="@+id/startBtn"
-        android:layout_alignRight="@+id/startBtn"
-        android:layout_marginBottom="82dp"
-        android:layout_marginLeft="14dp"
+        android:layout_x="128dp"
+        android:layout_y="343dp"
         android:text="Status: " />
 
-</RelativeLayout>
+    <CheckBox
+        android:id="@+id/checkGyro"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_x="55dp"
+        android:layout_y="199dp"
+        android:text="Gyroscope" />
+
+    <CheckBox
+        android:id="@+id/checkSound"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_x="55dp"
+        android:layout_y="148dp"
+        android:text="Sound Amplitude" />
+
+    <CheckBox
+        android:id="@+id/checkAccel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_x="55dp"
+        android:layout_y="102dp"
+        android:text="Accelerometer" />
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_x="86dp"
+        android:layout_y="41dp"
+        android:text="Surveillance Knobs"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+</AbsoluteLayout>

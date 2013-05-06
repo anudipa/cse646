@@ -22,7 +22,7 @@ import android.util.Log;
 import edu.buffalo.cse.phonelab.lib.PeriodicTask;
 
 @TargetApi(16)
-public class ProximityTask extends PeriodicTask 
+public class AlertMotionTask extends PeriodicTask 
 {
 	private final String SERVICE_TYPE = "_http._tcp.";
 	protected final Long DISCOVERY_INTERVAL_MS = 1000L;
@@ -40,7 +40,7 @@ public class ProximityTask extends PeriodicTask
 	private long lastUpdate = 0;
 	
 	@TargetApi(16)
-	public ProximityTask(Context context, String logTag, Long interval) throws IOException, NoSuchAlgorithmException {
+	public AlertMotionTask(Context context, String logTag, Long interval) throws IOException, NoSuchAlgorithmException {
 		super(context, logTag, interval);
 				
 		TelephonyManager telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
@@ -191,7 +191,7 @@ public class ProximityTask extends PeriodicTask
 
 		// @Override
 		public void onDiscoveryStarted(String regType) {
-			synchronized (ProximityTask.this) {
+			synchronized (AlertMotionTask.this) {
 				discoveryStarted = true;
 			}
 			Log.d(TAG, "Service discovery started");
@@ -201,7 +201,7 @@ public class ProximityTask extends PeriodicTask
 		
 		// @Override
 		public void onDiscoveryStopped(String serviceType) {
-			synchronized (ProximityTask.this) {
+			synchronized (AlertMotionTask.this) {
 				discoveryStarted = false;
 				//boolean localServiceRunning = false;
 				Log.d(TAG, "# discovered services = "+discoveredServices.size());
@@ -244,7 +244,7 @@ public class ProximityTask extends PeriodicTask
 		// @Override
 		public void onStartDiscoveryFailed(String serviceType, int errorCode) {
 			Log.w(TAG, "Failed to start discovery: " + errorCode);
-			synchronized (ProximityTask.this) {
+			synchronized (AlertMotionTask.this) {
 				if (discoveryStarted == true) {
 					Log.e(TAG, "Discovery started should not be true.");
 				}
@@ -254,7 +254,7 @@ public class ProximityTask extends PeriodicTask
 		// @Override
 		public void onStopDiscoveryFailed(String serviceType, int errorCode) {
 			Log.w(TAG, "Failed to stop discovery: " + errorCode);
-			synchronized (ProximityTask.this) {
+			synchronized (AlertMotionTask.this) {
 				if (discoveryStarted == false) {
 					Log.e(TAG, "Discovery started should not be true.");
 				}
@@ -277,7 +277,7 @@ public class ProximityTask extends PeriodicTask
 
 		// @Override
 		public void onServiceRegistered(NsdServiceInfo nsdServiceInfo) {
-			synchronized(ProximityTask.this)
+			synchronized(AlertMotionTask.this)
 			{
 				Log.i(TAG, "Local service registered: "+nsdServiceInfo.getServiceName());
 				localServiceRunning = true;
@@ -287,7 +287,7 @@ public class ProximityTask extends PeriodicTask
 		// @Override
 		public void onRegistrationFailed(NsdServiceInfo arg0, int arg1) {
 			Log.w(TAG, "Failed to register: " + arg1);
-			synchronized (ProximityTask.this) {
+			synchronized (AlertMotionTask.this) {
 				if (localServiceRunning == true) {
 					Log.e(TAG, "Registration started should not be true.");
 				}
@@ -296,7 +296,7 @@ public class ProximityTask extends PeriodicTask
 
 		// @Override
 		public void onServiceUnregistered(NsdServiceInfo arg0) {
-			synchronized(ProximityTask.this){
+			synchronized(AlertMotionTask.this){
 				Log.i(TAG, "Local service unregistered: "+arg0.getServiceName());
 				localServiceRunning = false;
 			}
@@ -305,7 +305,7 @@ public class ProximityTask extends PeriodicTask
 		// @Override
 		public void onUnregistrationFailed(NsdServiceInfo serviceInfo, int errorCode) {
 			Log.w(TAG, "Failed to unregister: " + errorCode);
-			synchronized (ProximityTask.this) {
+			synchronized (AlertMotionTask.this) {
 				if (localServiceRunning == false) {
 					Log.e(TAG, "Unregistration started should not be true.");
 				}
@@ -317,7 +317,7 @@ public class ProximityTask extends PeriodicTask
 	NsdManager.ResolveListener resolveListener = new NsdManager.ResolveListener() {
 		
 		public void onServiceResolved(NsdServiceInfo serviceInfo) {
-			synchronized (ProximityTask.this) {
+			synchronized (AlertMotionTask.this) {
 				Log.i(TAG, "Resolved service " + serviceInfo.getServiceName());
 			}
 			

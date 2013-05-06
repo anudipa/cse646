@@ -1,9 +1,11 @@
 package edu.smarteye.sensing;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -15,6 +17,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.TextView;
 
 public class MainActivity extends Activity {
@@ -22,6 +25,9 @@ public class MainActivity extends Activity {
 	TextView txtView;
 	Button start;
 	Button stop;
+	CheckBox acc;
+	CheckBox gyro;
+	CheckBox sound;
 	String TAG = "SmartEye";
 	Timer readTask = null;
 	
@@ -34,14 +40,32 @@ public class MainActivity extends Activity {
         txtView = (TextView) findViewById(R.id.textView1);
         start = (Button) findViewById(R.id.startBtn);
         stop = (Button) findViewById(R.id.stopBtn);
+        acc = (CheckBox)findViewById(R.id.checkAccel);
+        gyro = (CheckBox)findViewById(R.id.checkGyro);
+        sound = (CheckBox)findViewById(R.id.checkSound);
         
         final Intent serviceIntent = new Intent(getApplicationContext(),ExperimentControl.class );
-    	
+        
         
         start.setOnClickListener(new OnClickListener(){
 
 			@Override
 			public void onClick(View v) {
+				txtView.setText("Starting service.......");
+				try
+		        {
+			    	File root  = Environment.getExternalStorageDirectory();
+			    	File config = new File(root.getAbsolutePath(),"config.txt");
+			    	BufferedWriter out = new BufferedWriter(new FileWriter(config));
+			    	out.write("A:"+acc.isChecked()+"\n");
+			    	out.write("G:"+gyro.isChecked()+"\n");
+			    	out.write("S:"+sound.isChecked()+"\n");
+			    	out.close();
+		    	
+		        }catch(Exception e)
+		        {
+		        	Log.e(TAG, "Error in config.txt "+e.getMessage());
+		        }
 				startService(serviceIntent);
 				readTask = new Timer();
 		        readTask.scheduleAtFixedRate(new TimerTask() {
@@ -104,7 +128,7 @@ public class MainActivity extends Activity {
 				stopService(serviceIntent);
 				if (readTask != null)
 					readTask.cancel();
-				txtView.setText("Status: ");
+				txtView.setText("Service Stopped ");
 			}
         	
         	

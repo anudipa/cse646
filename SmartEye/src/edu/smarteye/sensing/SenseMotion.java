@@ -1,6 +1,8 @@
 package edu.smarteye.sensing;
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Timer;
@@ -27,6 +29,10 @@ public class SenseMotion implements SensorEventListener{
 	private Sensor mAccelerometer;
 	private Sensor mGyroscope;
 	
+	private boolean AcceFLAG = true;
+	private boolean GyroFLAG = true;
+	private boolean SoundFLAG = true;
+	
 	private long lastUpdate = 0;
 	private long lastStatusUpd = 0;
 	private int lastStatus = -1;
@@ -36,10 +42,10 @@ public class SenseMotion implements SensorEventListener{
 	private double thresholdDown = 0.0;
 	private int thresholdGyro = 0;
 	//private boolean motion = false;
-	File logFile;
+	/*File logFile;
 	File f;
 	FileWriter fwriter;
-	BufferedWriter o;
+	BufferedWriter o;*/
 	//Sampling
 	float[] sample = new float[20];
 	int i;
@@ -57,13 +63,38 @@ public class SenseMotion implements SensorEventListener{
 	Timer recordTask;
 	int interval = 1000;
 	private MediaRecorder mRecorder = null;
-	private int soundLevel;
+	private int soundLevel = -1;
   
 
     Handler handler = new Handler();
 	
 	public SenseMotion(Context context) 
 	{
+		try
+		{
+			File config = new File(Environment.getExternalStorageDirectory().getAbsolutePath(),"config.txt");
+			BufferedReader br = new BufferedReader(new FileReader(config));
+			String s = null;
+			while((s=br.readLine()) != null)
+			{
+				Log.i(TAG,s);
+				if((s = s.trim()).length() > 0)
+				{
+					if (s.contains("A:false"))
+						AcceFLAG = false;
+					else if(s.contains("G:false"))
+						GyroFLAG = false;
+					else if(s.contains("S:false"))
+						SoundFLAG = false;
+				}
+			}
+			br.close();
+			Log.d(TAG,"Accel = "+AcceFLAG+" Gyro = "+GyroFLAG+" Sound = "+SoundFLAG);
+			
+		}catch(Exception e)
+		{
+			Log.e(TAG, "Error at Config file "+e.getMessage());
+		}
 		mSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
         mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         mGyroscope = mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
@@ -81,81 +112,83 @@ public class SenseMotion implements SensorEventListener{
 			if (flag == 1)
 			{
 				mSensorManager.unregisterListener(this, mAccelerometer);
-				//mSensorManager.unregisterListener(this, mGyroscope);
+				mSensorManager.unregisterListener(this, mGyroscope);
 				thresholdUp  = 0.0;
 				thresholdDown = 0.0;
 				thresholdGyro = 0;
 				flag = 0;
-				o.close();
+				
 			}
-			File root = Environment.getExternalStorageDirectory();
-			logFile= new File(root.getAbsolutePath(), "logFile.txt");  
-            fwriter = new FileWriter(logFile);  
-            o = new BufferedWriter(fwriter);
-            flag = 1;
-            mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
-            //mSensorManager.registerListener(this, mGyroscope, SensorManager.SENSOR_DELAY_NORMAL);
-            mStartRecording = false;
-            recordTask = new Timer();
-			recordTask.scheduleAtFixedRate(new TimerTask() {
-				 public void run()
-				 {
-					 if (mRecorder == null) 
-						{
-							mRecorder = new MediaRecorder();
-							mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-							mRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-							mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
-							mRecorder.setOutputFile("/dev/null"); 
-							if(mRecorder == null)
-			            		{
-			            			Log.i(TAG, "Media obj is null");
-			            		}
-			            	//	Log.i(TAG,"About to start media");
-			            	if(!mStartRecording)
-			            	{
-			            		try
-			            		{
-			            			mRecorder.prepare();
-			            			mRecorder.start();
-			            			mStartRecording = true;
-			            			//Log.d(TAG,"Started Recording");
-			            			Thread.sleep(500);
-			            		}catch(IllegalStateException e1)
-			            		{
-			            			Log.e(TAG, "Error inside---"+e1.getMessage());
-			            			e1.printStackTrace();
-			            		}catch (IOException e2)
-			            		{
-			            			Log.e(TAG, "Error inside---"+e2.getMessage());
-			            			e2.printStackTrace();
-			            		} catch (InterruptedException e) {
-			            			e.printStackTrace();
-								}
-			            	}	
-						} 
-					 
-						
-						if (mRecorder != null && mStartRecording == true)
-						{
-						//	Log.d(TAG,"Stopping Recording");
-							mRecorder.getMaxAmplitude();
-							mRecorder.stop();
-							soundLevel = mRecorder.getMaxAmplitude();
-						//	Log.i(TAG, "Amplitude = "+soundLevel);
-							
-							mRecorder.reset();
-							
-							mRecorder.release();
-							
-							mRecorder = null;
-							mStartRecording = false;
-							
-						}
-				 }
-			 }, 0, interval);
 			
-            
+            flag = 1;
+            if(AcceFLAG == true)
+            	mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+            if(GyroFLAG == true)
+            	mSensorManager.registerListener(this, mGyroscope, SensorManager.SENSOR_DELAY_NORMAL);
+            mStartRecording = false;
+            if(SoundFLAG == true)
+            {
+	            recordTask = new Timer();
+				recordTask.scheduleAtFixedRate(new TimerTask() 
+				{
+					 public void run()
+					 {
+						 if (mRecorder == null) 
+							{
+								mRecorder = new MediaRecorder();
+								mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+								mRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+								mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+								mRecorder.setOutputFile("/dev/null"); 
+								if(mRecorder == null)
+				            		{
+				            			Log.i(TAG, "Media obj is null");
+				            		}
+				            	//	Log.i(TAG,"About to start media");
+				            	if(!mStartRecording)
+				            	{
+				            		try
+				            		{
+				            			mRecorder.prepare();
+				            			mRecorder.start();
+				            			mStartRecording = true;
+				            			//Log.d(TAG,"Started Recording");
+				            			Thread.sleep(500);
+				            		}catch(IllegalStateException e1)
+				            		{
+				            			Log.e(TAG, "Error inside---"+e1.getMessage());
+				            			e1.printStackTrace();
+				            		}catch (IOException e2)
+				            		{
+				            			Log.e(TAG, "Error inside---"+e2.getMessage());
+				            			e2.printStackTrace();
+				            		} catch (InterruptedException e) {
+				            			e.printStackTrace();
+									}
+				            	}	
+							} 
+						 
+							
+							if (mRecorder != null && mStartRecording == true)
+							{
+							//	Log.d(TAG,"Stopping Recording");
+								mRecorder.getMaxAmplitude();
+								mRecorder.stop();
+								soundLevel = mRecorder.getMaxAmplitude();
+							//	Log.i(TAG, "Amplitude = "+soundLevel);
+								
+								mRecorder.reset();
+								
+								mRecorder.release();
+								
+								mRecorder = null;
+								mStartRecording = false;
+								
+							}
+					 }
+				 }, 0, interval);
+				
+            }
 		} catch (Exception e) 
 		{
 			Log.e(TAG, e.getMessage()); 
@@ -166,7 +199,7 @@ public class SenseMotion implements SensorEventListener{
 	public void stopSense()
 	{
 		
-		if(recordTask != null)
+		if(SoundFLAG == true && recordTask != null)
 		{
 			recordTask.cancel();
 		}
@@ -186,24 +219,19 @@ public class SenseMotion implements SensorEventListener{
 		Log.d(TAG,"Stop Sensing");
 		
 		
-		try 
-		{
-			if(flag == 1)
+		if(flag == 1)
 			{
-				mSensorManager.unregisterListener(this, mAccelerometer);
-				//mSensorManager.unregisterListener(this, mGyroscope);
+				if(AcceFLAG == true)
+					mSensorManager.unregisterListener(this, mAccelerometer);
+				if(GyroFLAG == true)
+					mSensorManager.unregisterListener(this, mGyroscope);
 				thresholdUp  = 0.0;
 				thresholdDown = 0.0;
 				thresholdGyro = 0;
 				flag = 0;
-				o.close();
-				
 			}
 			
-		} catch (Exception e) 
-		{
-			Log.e(TAG, e.getMessage());
-		}
+		
 		
 	}
 
@@ -342,23 +370,12 @@ public class SenseMotion implements SensorEventListener{
 	    	                          " axisZ: " + axisZ + //
 	    	              " RotAngle: " + RotAngle + " Last RotAngle: " + mLastRotAngle + " Difference: " + Math.abs(RotAngle - mLastRotAngle));
 	        	 
-	        	 if (flag == 1)
-	        	 {
-	        		 try
-	        		 {
-	        			 String res = String.format("Gyroscope Time: %d RotAngle: %f Difference: %f\n", actualTime,RotAngle, Math.abs(RotAngle - mLastRotAngle));
-	        			 o.write(res);
-	        		 }catch(Exception e)
-	        		 {
-	        			 Log.e(TAG, "Cannot write to file "+e.getMessage());
-	        			 e.printStackTrace();
-	        		 }
-	        	 }
+	        	 
 	        	  
 	        	  try
 	        	  {
 	        		  File root = Environment.getExternalStorageDirectory();
-	        		  f= new File(root.getAbsolutePath(), "status.txt");  
+	        		  File f= new File(root.getAbsolutePath(), "status.txt");  
 	        		  FileWriter filewriter = new FileWriter(f);  
 	        		  BufferedWriter out = new BufferedWriter(filewriter);
 	        		  out.write("FLAG"+STATUS);
@@ -435,14 +452,14 @@ public class SenseMotion implements SensorEventListener{
 		 }
 		 if ((thresholdUp > 0.5 && thresholdUp < 4) || (thresholdDown > 0.5 && thresholdDown < 4))
 		 {
-			 if(soundLevel > 10000 && STATUS == 0)
+			 if(SoundFLAG == true && soundLevel > 250 && STATUS == 0)
 			 {
 				// motion = true;
 				 STATUS = 1;
 				 Log.i(TAG,"Moving Now: "+nowA+" Before: "+ lastA+" ampl = "+soundLevel);
 			 }
 		 }
-		 else if(STATUS == 0 && (thresholdUp > 3 || thresholdDown > 3 || soundLevel > 30000))
+		 else if(STATUS == 0 && (thresholdUp > 3 || thresholdDown > 3 || (SoundFLAG == true && soundLevel > 1000)))
 		 {
 			// motion = true;
 			 STATUS = 1;
@@ -451,20 +468,7 @@ public class SenseMotion implements SensorEventListener{
 			 thresholdDown = 1.0;
 		 }
 		 
-		 if (flag == 1 && STATUS == 1)
-		 {
-			 try
-			 {
-				 String res = String.format("Accelerometer Time: %d Acceleration: %f SoundLevel: %d\n", System.currentTimeMillis(),nowA, soundLevel);
-				 o.write(res);
-				 
-			 }catch(Exception e)
-			 {
-				 Log.e(TAG, "Cannot write to file "+e.getMessage());
-				 e.printStackTrace();
-			 }
-			 
-		 }
+		 
 
 			 long thisTime = System.currentTimeMillis(); 
 			 if (lastStatus != STATUS || (thisTime - lastStatusUpd) > 60000 || lastStatusUpd == 0)
@@ -475,7 +479,7 @@ public class SenseMotion implements SensorEventListener{
 					 try
 					 {
 						 File root = Environment.getExternalStorageDirectory();
-						 f= new File(root.getAbsolutePath(), "status.txt");  
+						 File f= new File(root.getAbsolutePath(), "status.txt");  
 						 FileWriter filewriter = new FileWriter(f);  
 						 BufferedWriter out = new BufferedWriter(filewriter);
 						 out.write("FLAG"+STATUS);
