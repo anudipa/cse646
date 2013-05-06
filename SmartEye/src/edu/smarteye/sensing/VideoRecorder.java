@@ -1,9 +1,6 @@
 package edu.smarteye.sensing;
 
-//import com.example.project.R;
-
 import java.io.IOException;
-
 import android.content.Context;
 import android.hardware.Camera;
 import android.media.MediaRecorder;
@@ -109,14 +106,10 @@ public class VideoRecorder implements SurfaceHolder.Callback
 
 	public void shutdown() 
 	{
-	    // Release MediaRecorder and especially the Camera as it's a shared
-	    // object that can be used by other applications
-		mMediaRecorder.stop();
+	    mMediaRecorder.stop();
 	    mMediaRecorder.reset();
 	    mMediaRecorder.release();
 	    mCamera.release();
-
-	    // once the objects have been released they can't be reused
 	    mMediaRecorder = null;
 	    mCamera = null;
 	}

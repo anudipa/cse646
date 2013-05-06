@@ -24,7 +24,9 @@ public class videoupload extends AsyncTask<URL,Integer,Long>
 		  {
 		      Log.v( "Connecting "," To server" );
 		      try
-		      {ftp.connect(InetAddress.getByName("ec2-50-17-179-124.compute-1.amazonaws.com"));}
+		      {
+		    	  ftp.connect(InetAddress.getByName("ec2-50-17-179-124.compute-1.amazonaws.com"));
+		      }
 		      catch(Exception f)
 		      {
 		    	  f.printStackTrace();
@@ -53,6 +55,10 @@ public class videoupload extends AsyncTask<URL,Integer,Long>
 		      Log.v("Dir ",ftp.printWorkingDirectory());
 		      ftp.changeWorkingDirectory("/uploads");
 		      Log.v("New Dir : ",ftp.printWorkingDirectory());
+		      if(in==null)
+		    	  Log.v("InputStream "," is null");
+		      else
+		    	  Log.v("InputStream "," is not null");
 		      boolean store = ftp.storeFile("/uploads",in); 
 		      Log.v("Store ",String.valueOf(store));
 		      in.close();
