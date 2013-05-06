@@ -2,7 +2,6 @@ package edu.smarteye.sensing;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
-
 import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
@@ -24,21 +23,7 @@ public class ExperimentControl extends Service
 	}
 
 	
-	/*public void onCreate()
-	{
-		try {
-			motionCheck = new SenseMotion(getApplicationContext());
-			motionCheck.startSense();
-			proximityCheck = new ProximityTask(getApplicationContext(),"Neighbors",100000L);
-			proximityCheck.start();
-		} catch (NoSuchAlgorithmException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}*/
+
 	@Override
 	public IBinder onBind(Intent intent) {
 		
@@ -54,11 +39,12 @@ public class ExperimentControl extends Service
 		
 		vrecorder = new VideoRecorder(getApplicationContext());
 		vrecorder.startrecording();*/
+		
 		motionCheck = new SenseMotion(getApplicationContext());
 		motionCheck.startSense();
 		
 		try {
-			proximityCheck = new ProximityTask(getApplicationContext(),"Neighbours",60000L);
+			proximityCheck = new ProximityTask(getApplicationContext(),"Neighbours",90000L);
 			proximityCheck.start();
 		} catch (NoSuchAlgorithmException e) {
 			// TODO Auto-generated catch block

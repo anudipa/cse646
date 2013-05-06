@@ -3,12 +3,33 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent" >
 
-    <TextView
+    <Button
+        android:id="@+id/startBtn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
-        android:text="@string/hello_world"
-        tools:context=".MainActivity" />
+        android:layout_marginTop="150dp" 
+        android:text="Start Service" />
+
+    <Button
+        android:id="@+id/stopBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/startBtn"
+        android:layout_below="@+id/startBtn"
+        android:layout_marginTop="25dp"
+        android:text="Stop Service" />
+
+    <TextView
+        android:id="@+id/textView1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/startBtn"
+        android:layout_alignLeft="@+id/startBtn"
+        android:layout_alignRight="@+id/startBtn"
+        android:layout_marginBottom="82dp"
+        android:layout_marginLeft="14dp"
+        android:text="Status: " />
 
 </RelativeLayout>
