@@ -29,16 +29,17 @@ public class SenseMotion implements SensorEventListener{
 	
 	private long lastUpdate = 0;
 	private long lastStatusUpd = 0;
-	private int lastStatus = 0;
+	private int lastStatus = -1;
 	private int flag = 0;
 	private boolean mStartRecording = false;
 	private double thresholdUp  = 0.0;
 	private double thresholdDown = 0.0;
 	private int thresholdGyro = 0;
 	//private boolean motion = false;
+	File logFile;
 	File f;
-	FileWriter filewriter;
-	BufferedWriter out;
+	FileWriter fwriter;
+	BufferedWriter o;
 	//Sampling
 	float[] sample = new float[20];
 	int i;
@@ -80,15 +81,20 @@ public class SenseMotion implements SensorEventListener{
 			if (flag == 1)
 			{
 				mSensorManager.unregisterListener(this, mAccelerometer);
+				//mSensorManager.unregisterListener(this, mGyroscope);
+				thresholdUp  = 0.0;
+				thresholdDown = 0.0;
+				thresholdGyro = 0;
 				flag = 0;
+				o.close();
 			}
 			File root = Environment.getExternalStorageDirectory();
-			f= new File(root.getAbsolutePath(), "status.txt");  
-            FileWriter filewriter = new FileWriter(f);  
-            out = new BufferedWriter(filewriter);
+			logFile= new File(root.getAbsolutePath(), "logFile.txt");  
+            fwriter = new FileWriter(logFile);  
+            o = new BufferedWriter(fwriter);
             flag = 1;
             mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
-            mSensorManager.registerListener(this, mGyroscope, SensorManager.SENSOR_DELAY_NORMAL);
+            //mSensorManager.registerListener(this, mGyroscope, SensorManager.SENSOR_DELAY_NORMAL);
             mStartRecording = false;
             recordTask = new Timer();
 			recordTask.scheduleAtFixedRate(new TimerTask() {
@@ -165,24 +171,34 @@ public class SenseMotion implements SensorEventListener{
 			recordTask.cancel();
 		}
 		
+		try
+		 {
+			 File root = Environment.getExternalStorageDirectory();
+			 File f= new File(root.getAbsolutePath(), "status.txt");  
+			 FileWriter filewriter = new FileWriter(f);  
+			 BufferedWriter out = new BufferedWriter(filewriter);
+			 out.write("FLAG0");
+			 out.close();
+		 }catch (Exception e)
+		 {
+			 Log.e(TAG, "In findMotion() "+e.getMessage());
+		 }
 		Log.d(TAG,"Stop Sensing");
 		
-		/*if(isPlaying == true || audioTrack != null)
-		{
-			audioTrack.release();
-			isPlaying = false;
-			audioTrack = null;
-		}*/
 		
 		try 
 		{
 			if(flag == 1)
 			{
 				mSensorManager.unregisterListener(this, mAccelerometer);
-				mSensorManager.unregisterListener(this, mGyroscope);
+				//mSensorManager.unregisterListener(this, mGyroscope);
+				thresholdUp  = 0.0;
+				thresholdDown = 0.0;
+				thresholdGyro = 0;
+				flag = 0;
+				o.close();
+				
 			}
-			
-			flag = 0;
 			
 		} catch (Exception e) 
 		{
@@ -307,27 +323,44 @@ public class SenseMotion implements SensorEventListener{
 	          {
 	        	
 	        	 mLastRotAngle = RotAngle;
-	        	 thresholdGyro += 2;
+	        	 thresholdGyro = thresholdGyro+1;
+	        	
 	        	 
 	          }
 	          else if (thresholdGyro > 0)
 	          {
 	        	  thresholdGyro --;
+	        	 
 	          }
 	          
-	          if(thresholdGyro > 2)
+	          if(thresholdGyro > 1)
 	          {
 	        	  STATUS = 1;
-	        	  Log.i(TAG,"Sensor Orientation GyroScope"+ "axisX: " + axisX + //
+	        	  
+	        	  Log.i(TAG,"Sensor Orientation GyroScope Threshold: "+ thresholdGyro+ " axisX: " + axisX + //
 	    	              " axisY: " + axisY + //
 	    	                          " axisZ: " + axisZ + //
 	    	              " RotAngle: " + RotAngle + " Last RotAngle: " + mLastRotAngle + " Difference: " + Math.abs(RotAngle - mLastRotAngle));
+	        	 
+	        	 if (flag == 1)
+	        	 {
+	        		 try
+	        		 {
+	        			 String res = String.format("Gyroscope Time: %d RotAngle: %f Difference: %f\n", actualTime,RotAngle, Math.abs(RotAngle - mLastRotAngle));
+	        			 o.write(res);
+	        		 }catch(Exception e)
+	        		 {
+	        			 Log.e(TAG, "Cannot write to file "+e.getMessage());
+	        			 e.printStackTrace();
+	        		 }
+	        	 }
+	        	  
 	        	  try
 	        	  {
 	        		  File root = Environment.getExternalStorageDirectory();
 	        		  f= new File(root.getAbsolutePath(), "status.txt");  
 	        		  FileWriter filewriter = new FileWriter(f);  
-	        		  out = new BufferedWriter(filewriter);
+	        		  BufferedWriter out = new BufferedWriter(filewriter);
 	        		  out.write("FLAG"+STATUS);
 	        		  out.close();
 	        		  thresholdGyro = 0;
@@ -340,6 +373,7 @@ public class SenseMotion implements SensorEventListener{
 	        	  {
 	        		  Log.e(TAG,"In Gyroscope "+e.getMessage());
 	        	  }
+	        	  
 	          }
 	          
 	          	          
@@ -364,25 +398,25 @@ public class SenseMotion implements SensorEventListener{
 			 thresholdDown = 0;
 					
 		 }
-		 else if(nowA - lastA > 0.15)
+		 else if(nowA - lastA > 0.18)
 		 {
              thresholdUp = thresholdUp + 4;
              thresholdDown = 0;
 		 }
-		 else if(lastA - nowA > 0.15)
+		 else if(lastA - nowA > 0.18)
 		 {
              thresholdDown = thresholdDown + 4;
              thresholdUp = 0;
 		 }
-		 else if(nowA - lastA > 0.03)
+		 else if(nowA - lastA > 0.05)
 		 {
-			 thresholdUp  = thresholdUp + 0.3;
+			 thresholdUp  = thresholdUp + 0.5;
 		     if(thresholdDown >= 0.1)
 		    	  thresholdDown = thresholdDown - 0.1;
 		 }
-		 else if(lastA - nowA > 0.03)
+		 else if(lastA - nowA > 0.05)
 		 {
-			 thresholdDown = thresholdDown + 0.3;
+			 thresholdDown = thresholdDown + 0.5;
 			 if (thresholdUp >= 0.1)
                  thresholdUp = thresholdUp - 0.1;
 		 }
@@ -416,29 +450,45 @@ public class SenseMotion implements SensorEventListener{
 			 thresholdUp = 1.0;
 			 thresholdDown = 1.0;
 		 }
-		 if (lastStatus != STATUS )
+		 
+		 if (flag == 1 && STATUS == 1)
 		 {
-			 long thisTime = System.currentTimeMillis(); 
-			 if(!(lastStatus == 1 && lastStatusUpd != 0 && (thisTime - lastStatusUpd) < 90000))
+			 try
 			 {
-			
-				 try
-				 {
-					 File root = Environment.getExternalStorageDirectory();
-					 f= new File(root.getAbsolutePath(), "status.txt");  
-					 FileWriter filewriter = new FileWriter(f);  
-					 out = new BufferedWriter(filewriter);
-					 out.write("FLAG"+STATUS);
-					 out.close();
-					 Log.i(TAG,"In Accel Changing Status: "+STATUS);
-				 }catch (Exception e)
-				 {
-					 Log.e(TAG, "In findMotion() "+e.getMessage());
-				 }
-				 lastStatusUpd = thisTime;
-				 lastStatus = STATUS;
-			}
+				 String res = String.format("Accelerometer Time: %d Acceleration: %f SoundLevel: %d\n", System.currentTimeMillis(),nowA, soundLevel);
+				 o.write(res);
+				 
+			 }catch(Exception e)
+			 {
+				 Log.e(TAG, "Cannot write to file "+e.getMessage());
+				 e.printStackTrace();
+			 }
+			 
 		 }
+
+			 long thisTime = System.currentTimeMillis(); 
+			 if (lastStatus != STATUS || (thisTime - lastStatusUpd) > 60000 || lastStatusUpd == 0)
+			 {
+				 if(!(lastStatus == 1 && (thisTime - lastStatusUpd) < 50000))
+				 {
+				
+					 try
+					 {
+						 File root = Environment.getExternalStorageDirectory();
+						 f= new File(root.getAbsolutePath(), "status.txt");  
+						 FileWriter filewriter = new FileWriter(f);  
+						 BufferedWriter out = new BufferedWriter(filewriter);
+						 out.write("FLAG"+STATUS);
+						 out.close();
+						 Log.i(TAG,"In Accel Changing Status: "+STATUS);
+					 }catch (Exception e)
+					 {
+						 Log.e(TAG, "In findMotion() "+e.getMessage());
+					 }
+					 lastStatusUpd = thisTime;
+					 lastStatus = STATUS;
+				}
+			 }
 	}
 
 

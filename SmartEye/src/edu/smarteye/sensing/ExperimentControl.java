@@ -52,7 +52,7 @@ public class ExperimentControl extends Service
 		{
 			motionCheck = new SenseMotion(getApplicationContext());
 			motionCheck.startSense();
-			proximityCheck = new ProximityTask(getApplicationContext(),"Neighbours",90000L);
+			proximityCheck = new ProximityTask(getApplicationContext(),"Neighbours",40000L);
 			proximityCheck.start();
 		} catch (NoSuchAlgorithmException e) {
 			// TODO Auto-generated catch block

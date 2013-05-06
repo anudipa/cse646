@@ -36,14 +36,14 @@ public class MainActivity extends Activity {
         stop = (Button) findViewById(R.id.stopBtn);
         
         final Intent serviceIntent = new Intent(getApplicationContext(),ExperimentControl.class );
-    	readTask = new Timer();
+    	
         
         start.setOnClickListener(new OnClickListener(){
 
 			@Override
 			public void onClick(View v) {
 				startService(serviceIntent);
-			
+				readTask = new Timer();
 		        readTask.scheduleAtFixedRate(new TimerTask() {
 
 					@Override
@@ -90,7 +90,7 @@ public class MainActivity extends Activity {
 						
 					}
 		        	
-		        }, 0, 5000L);
+		        }, 0, 3000L);
 				
 			}
         	

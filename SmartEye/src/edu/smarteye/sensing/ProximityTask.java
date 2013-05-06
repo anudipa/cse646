@@ -25,8 +25,8 @@ import edu.buffalo.cse.phonelab.lib.PeriodicTask;
 public class ProximityTask extends PeriodicTask 
 {
 	private final String SERVICE_TYPE = "_http._tcp.";
-	protected final Long DISCOVERY_INTERVAL_MS = 10000L;
-	protected final Long REGISTER_INTERVAL_MS = 1000L;
+	protected final Long DISCOVERY_INTERVAL_MS = 1000L;
+	protected final Long REGISTER_INTERVAL_MS = 500L;
 	//private static boolean RECORD_STATUS = false; 
 	
 	NsdServiceInfo serviceInfo;	
@@ -37,6 +37,7 @@ public class ProximityTask extends PeriodicTask
 	private String serviceName;
 	private HashSet<NsdServiceInfo> discoveredServices;
 	private boolean discoveryStarted;
+	private long lastUpdate = 0;
 	
 	@TargetApi(16)
 	public ProximityTask(Context context, String logTag, Long interval) throws IOException, NoSuchAlgorithmException {
@@ -212,7 +213,8 @@ public class ProximityTask extends PeriodicTask
 					} else {
 						nsdManager.resolveService(service, resolveListener);
 						Log.v(TAG, "ALert service: " + service.getServiceName());
-						if (service.getServiceName().contains("FLAG1"))
+						long thisTime = System.currentTimeMillis();
+						if (service.getServiceName().contains("FLAG1") && (thisTime-lastUpdate) > 90000)
 						{
 							try
 				        	  {
@@ -223,6 +225,7 @@ public class ProximityTask extends PeriodicTask
 				        		  out.write("FLAG1");
 				        		  out.close();
 				        		  Log.v(TAG,"Updating status");
+				        		  lastUpdate = thisTime;
 				        	  }
 				        	  catch(Exception e)
 				        	  {
