@@ -46,11 +46,12 @@ public class ExperimentControl extends Service
 		vrecorder.startrecording();*/
 		
 
-		/*motionCheck = new SenseMotion(getApplicationContext());
-		motionCheck.startSense();
+		
 		
 		try 
 		{
+			motionCheck = new SenseMotion(getApplicationContext());
+			motionCheck.startSense();
 			proximityCheck = new ProximityTask(getApplicationContext(),"Neighbours",90000L);
 			proximityCheck.start();
 		} catch (NoSuchAlgorithmException e) {
@@ -59,7 +60,8 @@ public class ExperimentControl extends Service
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}*/
+		}
+		/*
 		try 
 		{
 			Log.v("Video","Starting video_recording");
@@ -71,7 +73,7 @@ public class ExperimentControl extends Service
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-		vrecorder.check();
+		vrecorder.start();*/
 		
 		return START_STICKY;
 	}

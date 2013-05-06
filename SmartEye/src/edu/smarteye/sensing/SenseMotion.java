@@ -165,6 +165,8 @@ public class SenseMotion implements SensorEventListener{
 			recordTask.cancel();
 		}
 		
+		Log.d(TAG,"Stop Sensing");
+		
 		/*if(isPlaying == true || audioTrack != null)
 		{
 			audioTrack.release();

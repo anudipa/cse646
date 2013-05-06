@@ -72,7 +72,7 @@ public class MainActivity extends Activity {
 										}
 										else if(s.contains("FLAG0"))
 										{
-											txtView.setText("NotMoving");
+											txtView.setText("Status: NotMoving");
 										}
 										
 									}
