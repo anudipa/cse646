@@ -30,22 +30,25 @@ public class Videoplanner extends PeriodicTask
 	private String URL_String = "ftp://ec2-50-17-179-124.compute-1.amazonaws.com";
 	URL myURL;
 	Application appl;
-	
-	
-	
-	
 	public Videoplanner(Context ctxt, String logTag,Application app) throws NoSuchAlgorithmException 
 	{
 		super(ctxt, logTag);
-		TelephonyManager telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+		TelephonyManager telephonyManager = (TelephonyManager) ctxt.getSystemService(Context.TELEPHONY_SERVICE);
 		MessageDigest digester = MessageDigest.getInstance("SHA-1");
 		byte[] digest = digester.digest(telephonyManager.getDeviceId().getBytes());
 		hashedID = (new BigInteger(1, digest)).toString(16);
 		serviceName = hashedID;
 		context = ctxt;
+		if(app == null)
+			Log.v("app "," is null const");
+		else
+			Log.v("app "," is not null const");
 		appl = app;
+		Log.v("VideoPlanner","Constructor");
 	}
-		
+	
+	
+			
 	public void upload_video()
 	{
 		try 
@@ -70,6 +73,11 @@ public class Videoplanner extends PeriodicTask
 	
 	public void record()
 	{
+		
+		if(appl == null)
+			Log.v("app "," is null");
+		else
+			Log.v("app "," is not null");
 		Intent dialogIntent = new Intent(context, VideoRecorder.class);
 		dialogIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 		appl.startActivity(dialogIntent);
@@ -98,7 +106,8 @@ public class Videoplanner extends PeriodicTask
 					if (serviceName.contains("FLAG1") && !serviceName.equals(hashedID))
 					{
 						local_record_status = true;
-						record();   
+						record();  
+						Thread.sleep(12000);
 						upload_video(); 
 						
 					}
@@ -111,6 +120,9 @@ public class Videoplanner extends PeriodicTask
 				{
 					// TODO Auto-generated catch block
 					e.printStackTrace();
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
 				
 			}				
@@ -118,7 +130,6 @@ public class Videoplanner extends PeriodicTask
 			{
 				if(reply==false)
 				{
-					recorder.shutdown();
 					local_record_status = false;
 					//delete all the videos
 				}

@@ -39,6 +39,13 @@ public class videoupload extends AsyncTask<URL,Integer,Long>
 		          ftp.logout();
 		          
 		      }
+		      else
+		      {
+		    	  ftp.enterLocalPassiveMode();
+		    	  int y = ftp.getDataConnectionMode();
+		    	  Log.v("In mode ",Integer.toString(y));
+		    	  
+		      }
 		      int reply = ftp.getReplyCode();
 		      Log.v( "Connect returned: " , "" );
 		      if (!FTPReply.isPositiveCompletion(reply)) 
@@ -47,19 +54,16 @@ public class videoupload extends AsyncTask<URL,Integer,Long>
 		          Log.v( "Connection "," failed" );
 		          
 		      }
-		      ftp.enterLocalPassiveMode(); 
+		      
 		      FileInputStream in = new FileInputStream(VIDEO_PATH_NAME);
 		      ftp.setFileType(ftp.BINARY_FILE_TYPE);
 		      Log.v( "Uploading"," File" );
 		      Log.v("Video ",VIDEO_PATH_NAME);
 		      Log.v("Dir ",ftp.printWorkingDirectory());
-		      ftp.changeWorkingDirectory("/uploads");
+		      //ftp.changeWorkingDirectory("/uploads");
 		      Log.v("New Dir : ",ftp.printWorkingDirectory());
-		      if(in==null)
-		    	  Log.v("InputStream "," is null");
-		      else
-		    	  Log.v("InputStream "," is not null");
-		      boolean store = ftp.storeFile("/uploads",in); 
+		      boolean store = ftp.storeFile("VIDEO_PATH_NAME",in); 
+		      //ftp.sto
 		      Log.v("Store ",String.valueOf(store));
 		      in.close();
 		      ftp.logout();

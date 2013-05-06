@@ -1,15 +1,18 @@
 package edu.smarteye.sensing;
 
 import java.io.IOException;
+import android.app.Activity;
 import android.content.Context;
+import android.content.pm.ActivityInfo;
 import android.hardware.Camera;
 import android.media.MediaRecorder;
+import android.os.Bundle;
 import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
-public class VideoRecorder implements SurfaceHolder.Callback 
+public class VideoRecorder extends Activity implements SurfaceHolder.Callback 
 {
 	String TAG ="VideoRecorder";
 	String videofolder = android.os.Environment.getExternalStorageDirectory()+"/Record/";
@@ -20,33 +23,16 @@ public class VideoRecorder implements SurfaceHolder.Callback
 	private SurfaceHolder mHolder;
 	private boolean mInitSuccesful;
 	
-	public VideoRecorder(Context context)
+	public void onCreate(Bundle savedInstanceState) 
 	{
-		mSurfaceView = new SurfaceView(context);
+		super.onCreate(savedInstanceState);
+	    setContentView(R.layout.activity_main_rst);
+	    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+	    mSurfaceView = (SurfaceView) findViewById(R.id.surfaceView);
 	    mHolder = mSurfaceView.getHolder();
 	    mHolder.addCallback(this);
-	    mMediaRecorder = new MediaRecorder();
-	    Log.d(TAG, "Created instance");
 	}
-		
-	void startrecording()
-	{
-		//mSurfaceView = new SurfaceView(context);
-	    //mHolder = mSurfaceView.getHolder();
-	   //Holder.addCallback(this);
-	    mMediaRecorder.start();
-        try 
-        {
-            Thread.sleep(10 * 1000);
-        } 
-        catch (Exception e) 
-        {
-            e.printStackTrace();
-            Log.e(TAG, "Error while starting "+e.getMessage());
-        }
-        //finish();
-        
-	}
+
 
 	private void initRecorder(Surface surface) throws IOException 
 	{
@@ -67,7 +53,7 @@ public class VideoRecorder implements SurfaceHolder.Callback
 	    mMediaRecorder.setVideoFrameRate(30);
 	    mMediaRecorder.setVideoSize(640, 480);
 	    mMediaRecorder.setOutputFile(VIDEO_PATH_NAME);
-
+	
 	    try 
 	    {
 	        mMediaRecorder.prepare();
@@ -75,9 +61,8 @@ public class VideoRecorder implements SurfaceHolder.Callback
 	    catch (IllegalStateException e)
 	    {
 	        e.printStackTrace();
-	        Log.e(TAG, "Error at Init: "+e.getMessage());
 	    }
-
+	
 	    mInitSuccesful = true;
 	}
 
@@ -100,16 +85,31 @@ public class VideoRecorder implements SurfaceHolder.Callback
 	{
 	    shutdown();
 	}
-
+	
 	@Override
-	public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {}
-
-	public void shutdown() 
+	public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) 
 	{
-	    mMediaRecorder.stop();
+		mMediaRecorder.start();
+	    try 
+	    {
+	        Thread.sleep(10 * 1000);
+	    } 
+	    catch (Exception e) 
+	    {
+	        e.printStackTrace();
+	    }
+	    finish();
+	}
+	
+	private void shutdown() 
+	{
+	    // Release MediaRecorder and especially the Camera as it's a shared
+	    // object that can be used by other applications
 	    mMediaRecorder.reset();
 	    mMediaRecorder.release();
 	    mCamera.release();
+	
+	    // once the objects have been released they can't be reused
 	    mMediaRecorder = null;
 	    mCamera = null;
 	}
