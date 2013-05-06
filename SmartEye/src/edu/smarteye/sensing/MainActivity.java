@@ -36,47 +36,61 @@ public class MainActivity extends Activity {
         stop = (Button) findViewById(R.id.stopBtn);
         
         final Intent serviceIntent = new Intent(getApplicationContext(),ExperimentControl.class );
-        
+    	readTask = new Timer();
         
         start.setOnClickListener(new OnClickListener(){
 
 			@Override
 			public void onClick(View v) {
 				startService(serviceIntent);
-			/*	readTask = new Timer();
+			
 		        readTask.scheduleAtFixedRate(new TimerTask() {
 
 					@Override
-					public void run() {
-						try {
-						File root = Environment.getExternalStorageDirectory();
-						File f= new File(root.getAbsolutePath(), "status.txt");
-						BufferedReader br;
-						br = new BufferedReader(new FileReader(f));
+					public void run() 
+					{
+						Log.i(TAG,"Inside Timer");
 						
-						String s = null;
-						if ((s=br.readLine())!= null && (s = s.trim()).length() > 0)
-							{
-								Log.v(TAG,"status: "+s);
-								if(s.contains("FLAG1"))
-								{
-									txtView.setText("Status: Moving");
-								}
-								else if(s.contains("FLAG0"))
-								{
-									txtView.setText("NotMoving");
+						runOnUiThread(new Runnable() {
+
+							@Override
+							public void run() {
+
+								try {
+								File root = Environment.getExternalStorageDirectory();
+								File f= new File(root.getAbsolutePath(), "status.txt");
+								BufferedReader br;
+								br = new BufferedReader(new FileReader(f));
+								
+								String s = null;
+								if ((s=br.readLine())!= null && (s = s.trim()).length() > 0)
+									{
+										Log.v(TAG,"status: "+s);
+										if(s.contains("FLAG1"))
+										{
+											txtView.setText("Status: Moving");
+										}
+										else if(s.contains("FLAG0"))
+										{
+											txtView.setText("NotMoving");
+										}
+										
+									}
+								br.close();
+								} catch (Exception e) {
+									// TODO Auto-generated catch block
+									Log.e(TAG, "Error while reading "+e.getMessage());
 								}
 								
 							}
-						br.close();
-						} catch (Exception e) {
-							// TODO Auto-generated catch block
-							Log.e(TAG, "Error while reading "+e.getMessage());
-						}
+							
+							
+						});
+						
 						
 					}
 		        	
-		        }, 0, 5000L);*/
+		        }, 0, 5000L);
 				
 			}
         	
@@ -88,9 +102,9 @@ public class MainActivity extends Activity {
 			@Override
 			public void onClick(View v) {
 				stopService(serviceIntent);
-				/*if (readTask != null)
+				if (readTask != null)
 					readTask.cancel();
-					*/
+				txtView.setText("Status: ");
 			}
         	
         	
