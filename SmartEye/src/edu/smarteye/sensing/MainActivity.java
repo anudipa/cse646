@@ -28,6 +28,13 @@ public class MainActivity extends Activity {
 	CheckBox acc;
 	CheckBox gyro;
 	CheckBox sound;
+	CheckBox rgb;
+	CheckBox luma;
+	CheckBox state;
+	CheckBox save_prev;
+	CheckBox save_normal;
+	CheckBox save_change;
+
 	String TAG = "SmartEye";
 	Timer readTask = null;
 	
@@ -43,6 +50,13 @@ public class MainActivity extends Activity {
         acc = (CheckBox)findViewById(R.id.checkAccel);
         gyro = (CheckBox)findViewById(R.id.checkGyro);
         sound = (CheckBox)findViewById(R.id.checkSound);
+        save_prev = (CheckBox)findViewById(R.id.save_previous);
+        save_normal = (CheckBox)findViewById(R.id.save_original);
+        save_change = (CheckBox)findViewById(R.id.save_changes);
+        rgb = (CheckBox)findViewById(R.id.use_RGB);
+        luma = (CheckBox)findViewById(R.id.use_LUMA);
+        state = (CheckBox)findViewById(R.id.use_STATE);
+        
         
         final Intent serviceIntent = new Intent(getApplicationContext(),ExperimentControl.class );
         
@@ -60,6 +74,12 @@ public class MainActivity extends Activity {
 			    	out.write("A:"+acc.isChecked()+"\n");
 			    	out.write("G:"+gyro.isChecked()+"\n");
 			    	out.write("S:"+sound.isChecked()+"\n");
+			    	out.write("P:"+save_prev.isChecked()+"\n");
+			    	out.write("N:"+save_normal.isChecked()+"\n");
+			    	out.write("C:"+save_change.isChecked()+"\n");
+			    	out.write("R:"+rgb.isChecked()+"\n");
+			    	out.write("L:"+luma.isChecked()+"\n");
+			    	out.write("M:"+state.isChecked()+"\n");
 			    	out.close();
 		    	
 		        }catch(Exception e)
