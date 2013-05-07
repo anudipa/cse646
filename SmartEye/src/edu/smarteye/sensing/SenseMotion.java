@@ -55,7 +55,7 @@ public class SenseMotion implements SensorEventListener{
 	long last = 0;
 	private float mLastRotAngle;
 	private final static double EPSILON = 0.00000001;
-	final float currentRotVector[] =  { 1, 0, 0, 0 };
+	//final float currentRotVector[] =  { 1, 0, 0, 0 };
 	private static final float NS2S = 1.0f / 1000000000.0f;
     private final float[] deltaRotationVector = new float[4];
     private float timestamp;
@@ -175,6 +175,37 @@ public class SenseMotion implements SensorEventListener{
 								mRecorder.getMaxAmplitude();
 								mRecorder.stop();
 								soundLevel = mRecorder.getMaxAmplitude();
+								if (SoundFLAG == true && AcceFLAG == false)
+								{
+									if(soundLevel > 1000)
+										STATUS = 1;
+									else
+										STATUS = 0;
+									long thisTime = System.currentTimeMillis();
+							        if (!(lastStatus == 1 && (thisTime - lastStatusUpd) < 60000) && (lastStatus != STATUS || (thisTime - lastStatusUpd) > 50000))
+							          {
+							        	 
+							        	  try
+							        	  {
+							        		  File root = Environment.getExternalStorageDirectory();
+							        		  File f= new File(root.getAbsolutePath(), "status.txt");  
+							        		  FileWriter filewriter = new FileWriter(f);  
+							        		  BufferedWriter out = new BufferedWriter(filewriter);
+							        		  out.write("FLAG"+STATUS);
+							        		  out.close();
+							        		  Log.i(TAG,"In Sound Changing Status: "+STATUS+" sound level = "+soundLevel);
+							        		  lastStatusUpd = System.currentTimeMillis();
+							        		  lastStatus = STATUS;
+							        		  
+							        	  }
+							        	  catch(Exception e)
+							        	  {
+							        		  Log.e(TAG,"In Gyroscope "+e.getMessage());
+							        	  }
+							          }
+									
+								}
+									
 							//	Log.i(TAG, "Amplitude = "+soundLevel);
 								
 								mRecorder.reset();
@@ -289,6 +320,7 @@ public class SenseMotion implements SensorEventListener{
 		}
 		if (event.sensor.getType() == Sensor.TYPE_GYROSCOPE)
 		{
+			final float currentRotVector[] =  { 1, 0, 0, 0 };
 			if (timestamp != 0) 
 			{
 	              final float dT = (event.timestamp - timestamp) * NS2S;
@@ -347,31 +379,42 @@ public class SenseMotion implements SensorEventListener{
 	          axisX = currentRotVector[1];
 	          axisY = currentRotVector[2];
 	          axisZ = currentRotVector[3];
-	          if (Math.abs(RotAngle) != Math.abs(mLastRotAngle) && Math.abs(Math.abs(RotAngle)- Math.abs(mLastRotAngle)) > 0.003)
+	          if (Math.abs(RotAngle) != Math.abs(mLastRotAngle) && Math.abs(Math.abs(RotAngle)- Math.abs(mLastRotAngle)) > 0.0033)
 	          {
 	        	
+	        	 //mLastRotAngle = RotAngle;
+	        	 thresholdGyro = thresholdGyro+2;
+	        	 
+	        	 if(thresholdGyro > 5)
+		          {
+		        	  STATUS = 1;
+		        	  
+		        	  Log.i(TAG,"Sensor Orientation GyroScope Threshold: "+ thresholdGyro+ " axisX: " + axisX + //
+		    	              " axisY: " + axisY + //
+		    	                          " axisZ: " + axisZ + //
+		    	              " RotAngle: " + RotAngle + " Last RotAngle: " + mLastRotAngle + " Difference: " + Math.abs(Math.abs(RotAngle) - Math.abs(mLastRotAngle)));
+		        	 
+		        	 
+		          }
+	        	 
 	        	 mLastRotAngle = RotAngle;
-	        	 thresholdGyro = thresholdGyro+1;
 	        	
 	        	 
 	          }
 	          else if (thresholdGyro > 0)
 	          {
 	        	  thresholdGyro --;
+	        	  
+	        	  if (thresholdGyro < 2)
+	        		  STATUS = 0;
+	        	 
 	        	 
 	          }
 	          
-	          if(thresholdGyro > 1)
+	          long thisTime = System.currentTimeMillis();
+	          if (!(lastStatus == 1 && (thisTime - lastStatusUpd) < 60000) && (lastStatus != STATUS || (thisTime - lastStatusUpd) > 50000))
 	          {
-	        	  STATUS = 1;
-	        	  
-	        	  Log.i(TAG,"Sensor Orientation GyroScope Threshold: "+ thresholdGyro+ " axisX: " + axisX + //
-	    	              " axisY: " + axisY + //
-	    	                          " axisZ: " + axisZ + //
-	    	              " RotAngle: " + RotAngle + " Last RotAngle: " + mLastRotAngle + " Difference: " + Math.abs(RotAngle - mLastRotAngle));
 	        	 
-	        	 
-	        	  
 	        	  try
 	        	  {
 	        		  File root = Environment.getExternalStorageDirectory();
@@ -380,8 +423,8 @@ public class SenseMotion implements SensorEventListener{
 	        		  BufferedWriter out = new BufferedWriter(filewriter);
 	        		  out.write("FLAG"+STATUS);
 	        		  out.close();
+	        		  Log.i(TAG,"In Gyro Changing Status: "+STATUS+" threshold = "+thresholdGyro);
 	        		  thresholdGyro = 0;
-	        		  Log.i(TAG,"In Gyro Changing Status: "+STATUS);
 	        		  lastStatusUpd = System.currentTimeMillis();
 	        		  lastStatus = STATUS;
 	        		  
@@ -390,10 +433,8 @@ public class SenseMotion implements SensorEventListener{
 	        	  {
 	        		  Log.e(TAG,"In Gyroscope "+e.getMessage());
 	        	  }
-	        	  
 	          }
-	          
-	          	          
+	               
 	          }
 				
 			 timestamp =  event.timestamp;
@@ -415,12 +456,12 @@ public class SenseMotion implements SensorEventListener{
 			 thresholdDown = 0;
 					
 		 }
-		 else if(nowA - lastA > 0.18)
+		 else if(nowA - lastA > 0.15)
 		 {
              thresholdUp = thresholdUp + 4;
              thresholdDown = 0;
 		 }
-		 else if(lastA - nowA > 0.18)
+		 else if(lastA - nowA > 0.15)
 		 {
              thresholdDown = thresholdDown + 4;
              thresholdUp = 0;
