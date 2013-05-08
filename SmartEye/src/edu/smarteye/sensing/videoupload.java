@@ -1,12 +1,12 @@
 package edu.smarteye.sensing;
 
+import java.io.File;
 import java.io.FileInputStream;
-import java.net.InetAddress;
+import java.io.InputStream;
 import java.net.URL;
-
+import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPReply;
-
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -18,63 +18,41 @@ public class videoupload extends AsyncTask<URL,Integer,Long>
 	@Override
 	protected Long doInBackground(URL... url) 
 	{
-		// TODO Auto-generated method stub
-		FTPClient ftp = new FTPClient();
-		  try
-		  {
-		      Log.v( "Connecting "," To server" );
-		      try
-		      {
-		    	  ftp.connect(InetAddress.getByName("ec2-50-17-179-124.compute-1.amazonaws.com"));
-		      }
-		      catch(Exception f)
-		      {
-		    	  f.printStackTrace();
-		    	  Log.v("E:",f.toString());
-		      }
-		      Log.v("Reply code : ",Integer.toString(ftp.getReplyCode()));
-		      if(!ftp.login("anonymous","anonymous"))
-		      {
-		          Log.v( "Login"," failed" );
-		          ftp.logout();
-		          
-		      }
-		      else
-		      {
-		    	  ftp.enterLocalPassiveMode();
-		    	  int y = ftp.getDataConnectionMode();
-		    	  Log.v("In mode ",Integer.toString(y));
-		    	  
-		      }
-		      int reply = ftp.getReplyCode();
-		      Log.v( "Connect returned: " , "" );
-		      if (!FTPReply.isPositiveCompletion(reply)) 
-		      {
-		          ftp.disconnect();
-		          Log.v( "Connection "," failed" );
-		          
-		      }
-		      
-		      FileInputStream in = new FileInputStream(VIDEO_PATH_NAME);
-		      ftp.setFileType(ftp.BINARY_FILE_TYPE);
-		      Log.v( "Uploading"," File" );
-		      Log.v("Video ",VIDEO_PATH_NAME);
-		      Log.v("Dir ",ftp.printWorkingDirectory());
-		      //ftp.changeWorkingDirectory("/uploads");
-		      Log.v("New Dir : ",ftp.printWorkingDirectory());
-		      boolean store = ftp.storeFile("VIDEO_PATH_NAME",in); 
-		      //ftp.sto
-		      Log.v("Store ",String.valueOf(store));
-		      in.close();
-		      ftp.logout();
-		      ftp.disconnect();
-		  }
-		  catch(Exception ex)
-		  {
-		      ex.printStackTrace();
-		      Log.v("Error: ",ex.toString());
-		  }
-		return null;
+		   String location = VIDEO_PATH_NAME;
+		   String hostName = "ec2-54-224-254-71.compute-1.amazonaws.com";
+		   String username = "testuser";
+		   String password = "testuser";
+		   FTPClient ftp = null;
+
+	        InputStream in = null;
+	        try 
+	        {
+	        	
+	            ftp = new FTPClient();
+	            ftp.connect(hostName);
+	            ftp.enterLocalPassiveMode();
+	            ftp.login(username, password);
+	            ftp.setFileType(FTP.BINARY_FILE_TYPE);
+	            ftp.changeWorkingDirectory("/uploads");
+	            int reply = ftp.getReplyCode();
+	            Log.v("Received Reply from FTP Connection:" ,Integer.toString(reply));
+	            if (FTPReply.isPositiveCompletion(reply)) 
+	            {
+	                System.out.println("Connected Success");
+	            }
+
+	            File f1 = new File(location);
+	            in = new FileInputStream(f1);
+	            ftp.storeFile(VIDEO_PATH_NAME, in);
+	            ftp.logout();
+	            ftp.disconnect();
+	        }
+			catch(Exception ex)
+			{
+			     ex.printStackTrace();
+			}
+			return null;
+			
 	}
-	
+
 }
